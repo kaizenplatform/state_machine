@@ -7,10 +7,11 @@ module StateMachine
         end
 
         def define_static_state_initializer
-          owner_class.before_validation do
-            state_machine = self.class.state_machine
-            if initial_state = state_machine.initial_state(self)
-              self.__send__("#{state_machine.attribute}=", initial_state.value) if self.__send__(state_machine.attribute).nil?
+          owner_class.after_initialize do
+            self.class.state_machines.each do |attr, state_machine|
+              if self.__send__(state_machine.attribute).nil?
+                self.__send__("#{state_machine.attribute}=", state_machine.initial_state(self).try(:value))
+              end
             end
           end
         end
